@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    .button {
+      color: black;
+      background: white;
+      border: 1px solid black;
+      cursor: pointer;
+    }
+
+    .active {
+      background: lightblue !important;
+    }
+
+    .disabled {
+      color: darkgray;
+      cursor: default;
+    }
+  </style>
+</head>
+<body onresize="canvasResize()">
+  <div id="figures">
+       <button id="figure_rect" class="button active" onclick="selectFigure('rect')">Прямоугольник</button>
+       <button id="figure_circle" class="button" onclick="selectFigure('circle')">Круг</button>
+       <button id="figure_ellipse" class="button" onclick="selectFigure('ellipse')">Эллипс</button>
+       <button id="figure_polygon" class="button disabled" onclick="selectFigure('polygon')" disabled="disabled">Полигон</button>
+  </div>
+  <div style="position: relative;">
+      <canvas id="canvas" style="position: absolute; top: 0; left: 0; cursor:crosshair; border: 1px dashed black;"></canvas>
+  </div>
+  <script>
+    var canvas  = document.getElementById('canvas');
+    var context = canvas.getContext('2d');
+    var offsetX = canvas.offsetLeft;
+    var offsetY = canvas.offsetTop;
+    var currentFigure = 'rect';
+    var startX;
+    var startY;
+    var figures = [];
+    var mousedown = false;
+
+    function drawRect(x, y) {
+      if(!mousedown)
+        return;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.beginPath();
+      context.strokeStyle = "red";
+      context.rect(startX, startY, x - startX, y - startY);
+      context.stroke();
+    }
+    function drawPolygon() {
+      if(!mousedown)
+        return;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    function drawCircle(xD, yD) {
+      if(!mousedown)
+        return;
+      radius = Math.sqrt(xD * xD + yD * yD)
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.beginPath();
+      context.arc(startX, startY, radius, 0, Math.PI*2);
+      context.lineWidth = 1;
+      context.strokeStyle = "red";
+      context.stroke();
+    }
+    function drawEllipse(x, y) {
+      if(!mousedown)
+        return;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.beginPath();
+      context.moveTo(startX, startY + (y - startY) / 2);
+      context.bezierCurveTo(startX, startY, x, startY, x, startY + (y - startY) / 2);
+      context.bezierCurveTo(x, y, startX, y, startX, startY + (y - startY) / 2);
+      context.closePath();
+      context.lineWidth = 1;
+      context.strokeStyle = "red";
+      context.stroke();
+    }
+
+    // детектим нажатие кнопки
+    canvas.addEventListener('mousedown', function(e) {
+      console.log('mousedown');
+      startX = parseInt(e.offsetX - offsetX);
+      startY = parseInt(e.offsetY - offsetY);
+      mousedown = true;
+    })
+    // детектим отжатие кнопки
+    canvas.addEventListener('mouseup', function(e) {
+      console.log('mouseup');
+      if (!mousedown) {
+          return;
+      }
+      mousedown = false;
+    })
+    // детектим выход курсора за границы канваса
+    canvas.addEventListener('mouseout', function(e) {
+      console.log('mouseout');
+      if (!mousedown) {
+          return;
+      }
+      mousedown = false;
+    })
+    // детектим движение курсора
+    canvas.addEventListener('mousemove', function(e) {
+      console.log('mousemove');
+      if (!mousedown) {
+          return;
+      }
+      var mouseX  = parseInt(e.offsetX - offsetX);
+      var mouseY  = parseInt(e.offsetY - offsetY);
+      var nDeltaX = parseInt(startX - e.offsetX);
+      var nDeltaY = parseInt(startY - e.offsetY);
+      if (currentFigure == 'rect') {
+        drawRect(mouseX, mouseY)
+      }
+      if (currentFigure == 'circle') {
+        drawCircle(nDeltaX, nDeltaY)
+      }
+      if (currentFigure == 'ellipse') {
+        drawEllipse(mouseX, mouseY);
+      }
+    })
+
+    // Выбираем фигуру
+    function selectFigure(figure_name) {
+        currentFigure = figure_name;
+        var figures = document.getElementById('figures');
+        var previous_el = document.getElementsByClassName(" active");
+        previous_el[0].className = previous_el[0].className.replace(" active", "");
+        var selected_el = document.getElementById('figure_' + currentFigure);
+        selected_el.classList.add('active');
+    }
+
+    // Получаем размеры страницы
+    function getPageSize() {
+      var pageSizeList = {};
+      //------Get height------
+      //------  Высота  ------
+      pageSizeList.height = Math.max (
+        document.body.scrollHeight, document.documentElement.scrollHeight,
+        document.body.offsetHeight, document.documentElement.offsetHeight,
+        document.body.clientHeight, document.documentElement.clientHeight
+      );
+      //------Get width------
+      //------  Ширина ------
+      pageSizeList.width = Math.max (
+        document.body.scrollWidth, document.documentElement.scrollWidth,
+        document.body.offsetWidth, document.documentElement.offsetWidth,
+        document.body.clientWidth, document.documentElement.clientWidth
+      );
+      return pageSizeList;
+    }
+    function canvasResize() {
+      var pageSize = getPageSize();
+      canvas.height = pageSize.height - 50;
+      canvas.width  = pageSize.width - 50;
+    }
+    window.onload = canvasResize();
+
+  </script>
+</body>
+</html>

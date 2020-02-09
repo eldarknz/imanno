@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Image annotator</title>
+  <link href="/Users/ek_dev/Projects/IA/ext_libs/fontawesome_5_8_1/css/all.css" rel="stylesheet" />
+  <link href="/Users/ek_dev/Projects/IA/ext_libs/flaticon/font/flaticon.css" rel="stylesheet" />
+  <link href="./css/master.css" rel="stylesheet" />
+</head>
+<body>
+  <div id="navbar" class="navbar">
+    <ul class="navbar-ul" style="overflow: hidden;">
+      <li class="navbar-ul-li"><div class="dropdown">
+        <button class="dropdown-button">
+          File
+        </button>
+        <div class="dropdown-content">
+          <a href="index.html">Home</a>
+          <a onclick="alert('Coming soon :0')" href="javascript:void(0);">Open image</a>
+          <a id="downloadImage" onclick="downloadImage()" href="javascript:void(0);">Download image</a>
+          <a onclick="save_annotation()" href="javascript:void(0);">Save annotation</a>
+        </div>
+      </div>
+      </li>
+      <li class="navbar-ul-li"><div class="dropdown">
+        <button class="dropdown-button">
+          Annotation
+        </button>
+        <div class="dropdown-content">
+          <a onclick="alert('Coming soon :0')" href="javascript:void(0);">View annotations</a>
+          <a onclick="alert('Coming soon :0')" href="javascript:void(0);">Save as CSV</a>
+          <a onclick="alert('Coming soon :0')" href="javascript:void(0);">Save as JSON</a>
+          <a onclick="alert('Coming soon :0')" href="javascript:void(0);">Import from JSON</a>
+        </div>
+      </div></li>
+      <li class="navbar-ul-li"><div class="dropdown">
+        <button class="dropdown-button">
+          Grabcut
+        </button>
+        <div class="dropdown-content">
+          <a id="grabcut" onclick="grabcut()" href="javascript:void(0);">With rect</a>
+          <a onclick="alert('Coming soon :0')" href="javascript:void(0);">With mask</a>
+        </div>
+      </div></li>
+      <li class="navbar-ul-li"><div class="dropdown">
+        <button class="dropdown-button">
+          Help
+        </button>
+        <div class="dropdown-content">
+          <a onclick="alert('Coming soon :0')" href="javascript:void(0);">Keyboard shortcuts</a>
+          <a onclick="alert('From Earth with <3!')" href="javascript:void(0);">About</a>
+        </div>
+      </div></li>
+      <li class="navbar-ul-li"><span id="startDrawingBrush" onclick="startDrawing('brush')" name="drawing"><i class="fas fa-paint-brush"></i></span></li>
+      <li class="navbar-ul-li"><span id="startDrawingErase" onclick="startDrawing('erase')" name="drawing"><i class="fas fa-eraser"></i></span></li>
+      <li class="navbar-ul-li"><span id="startDrawingShape" onclick="startDrawing('shape')" name="drawing"><i class="fas fa-pen"></i></span></li>
+      <li class="navbar-ul-li"><div class="dropdown">
+        <button class="dropdown-button">
+          <i id="active_shape" class="flaticon-frame"></i>
+        </button>
+        <div class="dropdown-content">
+          <div id="set_shapes" class="set_shapes">
+            <div class="row" style="display: flex; flex-direction: row;">
+              <div id="rect" class="cell_shape shape_active"><i class="flaticon-frame"></i></div>
+              <div id="circle" class="cell_shape"><i class="flaticon-oval"></i></div>
+              <div id="ellipse" class="cell_shape"><i class="flaticon-ellipse"></i></div>
+              <div id="polygon" class="cell_shape"><i class="flaticon-pentagon"></i></div>
+            </div>
+            <div class="row" style="display: flex; flex-direction: row;">
+              <div id="point" class="cell_shape"><i class="flaticon-aim"></i></div>
+            </div>
+          </div>
+        </div>
+      </div></li>
+      <li class="navbar-ul-li"><div class="dropdown">
+        <button class="dropdown-button">
+          <i class="fas fa-palette"></i>
+        </button>
+        <div class="dropdown-content">
+          <div id="color_palette" class="color_palette">
+            <div class="row" style="display: flex; flex-direction: row;">
+              <div class="cell_color" style="background: white;"></div>
+              <div class="cell_color" style="background: silver;"></div>
+              <div class="cell_color" style="background: gray;"></div>
+              <div class="cell_color cell_color_active" style="background: black;"></div>
+            </div>
+            <div class="row" style="display: flex; flex-direction: row;">
+              <div class="cell_color" style="background: red;"></div>
+              <div class="cell_color" style="background: orange;"></div>
+              <div class="cell_color" style="background: yellow;"></div>
+              <div class="cell_color" style="background: lime;"></div>
+            </div>
+            <div class="row" style="display: flex; flex-direction: row;">
+              <div class="cell_color" style="background: green;"></div>
+              <div class="cell_color" style="background: aqua;"></div>
+              <div class="cell_color" style="background: blue;"></div>
+              <div class="cell_color" style="background: purple;"></div>
+            </div>
+          </div>
+        </div>
+      </div></li>
+      <li class="navbar-ul-li"><span onclick="clearCanvasContent()"><i class="fas fa-trash"></i></span></li>
+      <li class="navbar-ul-li"><div class="dropdown">
+        <button class="dropdown-button">
+          <i class="fas fa-cogs"></i>
+        </button>
+        <div class="dropdown-content">
+          <div class="set_shapes">
+            <div class="row">
+              <a onclick="alert('Coming soon :0')" href="javascript:void(0);">Settings</a>
+            </div>
+          </div>
+        </div>
+      </div></li>
+      <li class="navbar-ul-li"><span onclick="alert('Coming soon :0')"><i class="fas fa-search-plus"></i></span></li>
+      <li class="navbar-ul-li"><span onclick="alert('Coming soon :0')"><i class="fas fa-search-minus"></i></span></li>
+      <li class="navbar-ul-li"><span onclick="alert('Coming soon :0')"><i class="fas fa-compress-arrows-alt"></i></span></li>
+      <li class="navbar-ul-li"><span onclick="alert('Coming soon :0')"><i class="fas fa-expand-arrows-alt"></i></span></li>
+      <li class="navbar-ul-li"><div class="label_select">
+        <select id="labelSelect" class="select"><option>no selected</option></select>
+      </div></li>
+      <!--<div class="dropdown">
+        <button class="dropdown-button">
+          File
+        </button>
+        <div class="dropdown-content">
+          <a href="javascript:void(0);">Open</a>
+          <a href="javascript:void(0);">Save</a>
+          <a href="javascript:void(0);">Close</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <button class="dropdown-button">
+          Edit
+        </button>
+        <div class="dropdown-content">
+          <a href="javascript:void(0);">Undo</a>
+          <a href="javascript:void(0);">Redo</a>
+          <a href="javascript:void(0);">Cut</a>
+          <a href="javascript:void(0);">Copy</a>
+          <a href="javascript:void(0);">Paste</a>
+          <a href="javascript:void(0);">Delete</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <button class="dropdown-button">
+          Tools
+        </button>
+        <div class="dropdown-content">
+          <a href="javascript:void(0);">Instrument 1</a>
+          <a href="javascript:void(0);">Instrument 1</a>
+          <a href="javascript:void(0);">Instrument 1</a>
+        </div>
+      </div>
+      <div class="dropdown">
+        <button class="dropdown-button" onclick="myFunction()">
+          Help
+        </button>
+        <div class="dropdown-content">
+          <a href="javascript:void(0);">Documentation</a>
+          <a href="javascript:void(0);">About</a>
+        </div>
+      </div>-->
+    </ul>
+  </div>
+  <div id="canvas_panel" class="canvas_panel">
+    <canvas id="image_canvas" style="position: absolute; top: 10px; left: 10px; z-index: 1;"></canvas>
+    <canvas id="brush_canvas" style="position: absolute; top: 10px; left: 10px; z-index: 2;"></canvas>
+    <canvas id="shape_canvas" style="position: absolute; top: 10px; left: 10px; z-index: 3;">
+      Sorry, your browser does not support HTML5 Canvas functionality which is required for this application.
+    </canvas>
+  </div>
+  <div id="image_for_crop" class=""></div>
+  <!--<script src="ext_libs/jquery_3_3_1/jquery-3.3.1.js" charset="utf-8"></script>
+  <script src="ext_libs/popper_v1/popper.min.js" charset="utf-8"></script>-->
+  <script src="./js/editor.js" charset="utf-8"></script>
+  <!--<script id="opencv" src="./ext_libs/opencvjs/opencv.js" charset="utf-8"></script>-->
+</body>
+</html>

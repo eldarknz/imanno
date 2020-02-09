@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset="UTF-8">
+    <title>GrabCut</title>
+    <body>
+    <canvas id="canvasInput" width="1440" height="900" style="border:1px solid black;"></canvas>
+    <canvas id="canvasOutput" width="1440" height="900" style="border:1px solid black;"></canvas>
+    <!--<script async src="./opencv.js" onload="onOpenCvReady;" type="text/javascript"></script>-->
+    <script async type="text/javascript" src="./opencv.js"></script>
+    <script>
+        window.onload = function()
+        {
+            let input_canvas = document.getElementById('canvasInput');
+            let ctx = input_canvas.getContext('2d');
+            let input_img = new Image();
+            input_img.onload = function()
+            {
+                ctx.drawImage(input_img, 0, 0, 1440, 900);
+            };
+            //input_img.src = './index.png';
+            input_img.src = './screenshot_2.jpg';
+            // const cv = require('./opencv.js');
+    
+            cv['onRuntimeInitialized']=()=>{
+              var m = new cv.Mat(4, 5, cv.CV_8UC3);
+
+                let src = cv.imread('canvasInput');
+                cv.cvtColor(src, src, cv.COLOR_RGBA2RGB, 0);
+                cv.imshow('canvasOutput', src);
+                let mask = new cv.Mat();
+                let bgdModel = new cv.Mat();
+                let fgdModel = new cv.Mat();
+                //let rect = new cv.Rect(50, 50, 260, 280);
+                let rect = new cv.Rect(103, 64, 40, 80);
+                cv.grabCut(src, mask, rect, bgdModel, fgdModel, 1, cv.GC_INIT_WITH_RECT);
+                // draw foreground
+                for (let i = 0; i < src.rows; i++) {
+                    for (let j = 0; j < src.cols; j++) {
+                        if (mask.ucharPtr(i, j)[0] == 0 || mask.ucharPtr(i, j)[0] == 2) {
+                            src.ucharPtr(i, j)[0] = 0;
+                            src.ucharPtr(i, j)[1] = 0;
+                            src.ucharPtr(i, j)[2] = 0;
+                        }
+                    }
+                }
+                // draw grab rect
+                let color = new cv.Scalar(0, 0, 255);
+                let point1 = new cv.Point(rect.x, rect.y);
+                let point2 = new cv.Point(rect.x + rect.width, rect.y + rect.height);
+                cv.rectangle(src, point1, point2, color);
+                cv.imshow('canvasOutput', src);
+                src.delete(); mask.delete(); bgdModel.delete(); fgdModel.delete();
+            }
+        };
+    </script>
+    </body>
+</html>

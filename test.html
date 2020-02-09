@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style media="screen">
+    .button {
+      color: black;
+      background: white;
+      border: 1px solid black;
+    }
+
+    .active {
+      background: lightblue !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="CanvasContainer">
+       <canvas id="drawingCanvas" width="1440" height="400"></canvas>
+  </div>
+  <div>
+       <button class="button" onclick="addRandomFigure()">Добавить</button>
+       <button class="button" onclick="clearCanvas()">Очистить</button>
+  </div>
+  <div id="figures">
+       <button id="figure_rect" class="button active" onclick="selectFigure('rect')">Прямоугольник</button>
+       <button id="figure_circle" class="button" onclick="selectFigure('circle')">Круг</button>
+       <button id="figure_ellipse" class="button" onclick="selectFigure('ellipse')" disabled="disabled">Эллипс</button>
+       <button id="figure_polygon" class="button" onclick="selectFigure('polygon')" disabled="disabled">Полигон</button>
+  </div>
+  <!--<script type="text/javascript">
+    var x = -40;
+    var y = -60;
+    var xp = new Array(-73,-33,7,-33); // Массив X-координат полигона
+    var yp = new Array(-85,-126,-85,-45); // Массив Y-координат полигона
+    function inPoly(x,y){
+      npol = xp.length;
+      j = npol - 1;
+      var c = 0;
+      for (i = 0; i < npol;i++){
+          if ((((yp[i]<=y) && (y<yp[j])) || ((yp[j]<=y) && (y<yp[i]))) &&
+          (x > (xp[j] - xp[i]) * (y - yp[i]) / (yp[j] - yp[i]) + xp[i])) {
+              c = !c
+          }
+          j = i;
+      }
+      console.log(c);
+    }
+    inPoly(x,y);
+  </script>-->
+  <script type="text/javascript">
+    var REGION_SHAPE = { RECT    :'rect',
+                         CIRCLE  :'circle',
+                         ELLIPSE :'ellipse',
+                         POLYGON :'polygon'
+                       };
+    // Этот массив хранит все окружности на холсте
+    var figures = [];
+    var isDragging = false;
+    var previousSelectedCircle = null;
+    var currentFigure = REGION_SHAPE.RECT;
+    // Пользовательский объект Circle
+
+    function Rectangle(x, y, w, h, color) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.color = color;
+        this.type = 'rect';
+        this.isSelected = false;
+    }
+
+    function Circle(x, y, r, color) {
+        this.x = x;
+        this.y = y;
+        this.r = r;
+        this.color = color;
+        this.type = 'circle';
+        this.isSelected = false;
+    }
+
+    function randomFromTo(from, to) {
+      return Math.floor(Math.random() * (to - from + 1) + from);
+    }
+
+    function addRandomFigure() {
+        var figure;
+        // Устанавливаем произвольный размер и позицию круга
+        var x = randomFromTo(0, canvas.width);
+        var y = randomFromTo(0, canvas.height);
+        var w = randomFromTo(10, 60);
+        var h = randomFromTo(10, 60);
+        var r = randomFromTo(10, 60);
+
+        // Окрашиваем круг произвольным цветом
+        var colors = ["green", "blue", "red", "yellow", "magenta", "orange", "brown", "purple", "pink"];
+        var color = colors[randomFromTo(0, 8)];
+        //console.log(currentFigure);
+        if (currentFigure == 'circle') {
+          // Создаем новый круг
+          var figure = new Circle(x, y, r, color);
+          console.log(figure);
+        }
+        if (currentFigure == 'rect') {
+          var figure = new Rectangle(x, y, w, h, color);
+        }
+
+        // Сохраняем его в массиве
+        figures.push(figure);
+
+        // Обновляем отображение круга
+        drawFigure();
+    }
+
+    function clearCanvas() {
+        // Очистить массив
+        figures = [];
+
+        // Очистить холст
+        drawFigure();
+    }
+
+    function drawFigure() {
+        // Очистить холст
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Перебираем все круги
+        for(var i=0; i<figures.length; i++) {
+            var figure = figures[i];
+
+            context.globalAlpha = 0.85;
+            context.beginPath();
+            if (figure.type == "rect") {
+              context.rect(figure.x, figure.y, figure.w, figure.h);
+              context.closePath();
+            }
+            if (figure.type == "circle") {
+              context.arc(figure.x, figure.y, figure.r, 0, Math.PI*2);
+            }
+
+            context.fillStyle = figure.color;
+            context.strokeStyle = "black";
+
+            // Выделяем выбранный круг рамкой (потребуется позже)
+            if (figure.isSelected) {
+                context.lineWidth = 5;
+            }
+            else {
+                context.lineWidth = 1;
+            }
+            context.fill();
+            context.stroke();
+        }
+    }
+
+    function canvasClick(e) {
+      // Получаем координаты точки холста, в которой щелкнули
+      var clickX = e.pageX - canvas.offsetLeft;
+      var clickY = e.pageY - canvas.offsetTop;
+
+      // Проверяем, щелкнули ли no кругу
+      for(var i = figures.length - 1; i >= 0; i--) {
+        var circle = figures[i];
+        // С помощью теоремы Пифагора вычисляем расстояние от точки, в которой щелкнули, до центра текущего круга
+        var distanceFromCenter = Math.sqrt(Math.pow(circle.x - clickX, 2) + Math.pow(circle.y - clickY, 2))
+    	  // Определяем, находится ли точка, в которой щелкнули, в данном круге
+        if (distanceFromCenter <= circle.r) {
+          if (previousSelectedCircle != null) {
+            previousSelectedCircle.isSelected = false;
+          }
+          previousSelectedCircle = circle;
+          circle.isSelected = true;
+          drawFigure();
+
+          isDragging = true;
+          return;
+        } else {
+            circle.isSelected      = false;
+            previousSelectedCircle = null;
+            circle                 = null;
+            isDragging             = false;
+            drawFigure();
+        }
+      }
+    }
+
+    function stopDragging() {
+      isDragging = false;
+    }
+
+    function dragCircle(e) {
+      // Проверка возможности перетаскивания
+      if (isDragging == true) {
+        // Проверка попадания
+        if (previousSelectedCircle != null) {
+          // Сохраняем позицию мыши
+          var x = e.pageX - canvas.offsetLeft;
+          var y = e.pageY - canvas.offsetTop;
+
+          // Перемещаем круг в новую позицию
+          previousSelectedCircle.x = x;
+          previousSelectedCircle.y = y;
+
+          // Обновляем холст
+          drawFigure();
+        }
+      }
+    }
+
+    function selectFigure(figure_name) {
+        currentFigure = figure_name;
+        var figures = document.getElementById('figures');
+        var previous_el = document.getElementsByClassName(" active");
+        previous_el[0].className = previous_el[0].className.replace(" active", "");
+        var selected_el = document.getElementById('figure_' + currentFigure);
+        selected_el.classList.add('active');
+
+        switch(currentFigure) {
+            case REGION_SHAPE.RECT: // Fall-through
+            case REGION_SHAPE.CIRCLE: // Fall-through
+            case REGION_SHAPE.ELLIPSE:
+                console.log('Press single click and drag mouse to draw ' +
+                             currentFigure + ' region');
+            break;
+
+            case REGION_SHAPE.POLYLINE:
+            case REGION_SHAPE.POLYGON:
+                //var is_user_drawing_polygon = false;
+                //var current_polygon_region_id = -1;
+
+                console.log('[Enter] to finish, [Esc] to cancel, ' +
+                             '[Click] to define polygon/polyline vertices')
+            break;
+
+            case REGION_SHAPE.POINT:
+                console.log('Press single click to define points (or landmarks)');
+                break;
+
+            default:
+                console.log('Unknown shape selected!');
+                break;
+        }
+    }
+
+    window.onload = function() {
+        // Определение контекста рисования
+    	  canvas = document.getElementById("drawingCanvas");
+        context = canvas.getContext("2d");
+    		canvas.onmousedown = canvasClick;
+    		canvas.onmouseup = stopDragging;
+        canvas.onmouseout = stopDragging;
+        canvas.onmousemove = dragCircle;
+    }
+
+  </script>
+</body>
+</html>

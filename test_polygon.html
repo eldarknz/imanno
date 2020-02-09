@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body onload="clear_shapes_canvas()">
+    <div style="float:left">
+        <canvas id="jPolygon" width="640" height="480" data-imgsrc="/Users/ek_dev/Projects/IA/imgs/screenshot_2.png" style="cursor:crosshair; border: 1px dashed black;" onmousedown="point_it(event)" oncontextmenu="return false;">
+            Your browser does not support the HTML5 shapes_canvas tag.
+        </canvas>
+    </div>
+    <div style="float:left; margin-left:20px;">
+        <div>
+            <button onclick="undo()">Undo</button>
+            <button onclick="clear_shapes_canvas()">Clear</button>
+            <p>Press <strong>Left Click</strong> to draw a point.</p>
+            <p><strong>CTRL+Click</strong> or <strong>Right Click</strong> to close the polygon.</p>
+        </div>
+        <div>
+            <p><strong>Coordinates:</strong></p>
+            <textarea id="coordinates" disabled="disabled" style="width:300px; height:200px;"></textarea>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var shapes_canvas = document.getElementById("jPolygon");
+        var shapes_ctx = shapes_canvas.getContext("2d");
+
+        var perimeter = [];
+        var complete = false;
+
+        function line_intersects(p0, p1, p2, p3) {
+            var s1_x, s1_y, s2_x, s2_y;
+            s1_x = p1['x'] - p0['x'];
+            s1_y = p1['y'] - p0['y'];
+            s2_x = p3['x'] - p2['x'];
+            s2_y = p3['y'] - p2['y'];
+
+            var s, t;
+            s = (-s1_y * (p0['x'] - p2['x']) + s1_x * (p0['y'] - p2['y'])) / (-s2_x * s1_y + s1_x * s2_y);
+            t = ( s2_x * (p0['y'] - p2['y']) - s2_y * (p0['x'] - p2['x'])) / (-s2_x * s1_y + s1_x * s2_y);
+
+            if (s >= 0 && s <= 1 && t >= 0 && t <= 1)
+            {
+                // Collision detected
+                return true;
+            }
+            return false; // No collision
+        }
+
+        function point(x, y){
+            shapes_ctx.fillStyle="red";
+            shapes_ctx.strokeStyle = "red";
+            shapes_ctx.fillRect(x-2,y-2,4,4);
+            shapes_ctx.moveTo(x,y);
+        }
+
+        function draw(end){
+            shapes_ctx.lineWidth = 1;
+            shapes_ctx.strokeStyle = "red";
+            shapes_ctx.lineCap = "square";
+            shapes_ctx.beginPath();
+
+            for(var i = 0; i < perimeter.length; i++){
+                if(i == 0){
+                    shapes_ctx.moveTo(perimeter[i]['x'],perimeter[i]['y']);
+                    end || point(perimeter[i]['x'],perimeter[i]['y']);
+                } else {
+                    shapes_ctx.lineTo(perimeter[i]['x'],perimeter[i]['y']);
+                    end || point(perimeter[i]['x'],perimeter[i]['y']);
+                }
+            }
+            if(end){
+                shapes_ctx.lineTo(perimeter[0]['x'],perimeter[0]['y']);
+                shapes_ctx.closePath();
+                shapes_ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                shapes_ctx.fill();
+                shapes_ctx.strokeStyle = 'blue';
+                complete = true;
+            }
+            shapes_ctx.stroke();
+
+            // print coordinates
+            if(perimeter.length == 0){
+                document.getElementById('coordinates').value = '';
+            } else {
+                document.getElementById('coordinates').value = JSON.stringify(perimeter);
+            }
+        }
+
+        function check_intersect(x,y){
+            if(perimeter.length < 4){
+                return false;
+            }
+            var p0 = new Array();
+            var p1 = new Array();
+            var p2 = new Array();
+            var p3 = new Array();
+
+            p2['x'] = perimeter[perimeter.length-1]['x'];
+            p2['y'] = perimeter[perimeter.length-1]['y'];
+            p3['x'] = x;
+            p3['y'] = y;
+
+            for(var i=0; i<perimeter.length-1; i++){
+                p0['x'] = perimeter[i]['x'];
+                p0['y'] = perimeter[i]['y'];
+                p1['x'] = perimeter[i+1]['x'];
+                p1['y'] = perimeter[i+1]['y'];
+                if(p1['x'] == p2['x'] && p1['y'] == p2['y']){ continue; }
+                if(p0['x'] == p3['x'] && p0['y'] == p3['y']){ continue; }
+                if(line_intersects(p0,p1,p2,p3)==true){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function point_it(event) {
+            if(complete){
+                alert('Polygon already created');
+                return false;
+            }
+            var rect, x, y;
+
+            if(event.ctrlKey || event.which === 3 || event.button === 2){
+                if(perimeter.length==2){
+                    alert('You need at least three points for a polygon');
+                    return false;
+                }
+                x = perimeter[0]['x'];
+                y = perimeter[0]['y'];
+                if(check_intersect(x,y)){
+                    alert('The line you are drowing intersect another line');
+                    return false;
+                }
+                draw(true);
+                alert('Polygon closed');
+        	      event.preventDefault();
+                return false;
+            } else {
+                rect = shapes_canvas.getBoundingClientRect();
+                x = event.clientX - rect.left;
+                y = event.clientY - rect.top;
+                if (perimeter.length>0 && x == perimeter[perimeter.length-1]['x'] && y == perimeter[perimeter.length-1]['y']){
+                    // same point - double click
+                    return false;
+                }
+                if(check_intersect(x,y)){
+                    alert('The line you are drowing intersect another line');
+                    return false;
+                }
+                perimeter.push({'x':x,'y':y});
+                draw(false);
+                return false;
+            }
+        }
+
+        function start(with_draw) {
+          shapes_ctx = shapes_canvas.getContext("2d");
+          if(with_draw == true){
+              draw(false);
+          }
+        }
+
+        //----------------------//
+
+        function undo(){
+            shapes_ctx = undefined;
+            perimeter.pop();
+            complete = false;
+            start(true);
+        }
+        function clear_shapes_canvas(){
+            shapes_ctx = undefined;
+            perimeter = new Array();
+            complete = false;
+            document.getElementById('coordinates').value = '';
+            start();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <canvas id="canvas" width="1440" height="400" style="cursor:crosshair; border: 1px dashed black;"></canvas>
+  <script type="text/javascript">
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+    var offsetX = canvas.offsetLeft;
+    var offsetY = canvas.offsetTop;
+    var startX;
+    var startY;
+    var mousedown = false;
+
+    function drawOval(x, y) {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.beginPath();
+      context.moveTo(startX, startY + (y - startY) / 2);
+      context.bezierCurveTo(startX, startY, x, startY, x, startY + (y - startY) / 2);
+      context.bezierCurveTo(x, y, startX, y, startX, startY + (y - startY) / 2);
+      context.closePath();
+      context.lineWidth = 1;
+      context.strokeStyle = "red";
+      context.stroke();
+    }
+
+    function drawCircle(xD, yD){
+      if(!mousedown)
+        return;
+      radius = Math.sqrt(xD * xD + yD * yD)
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.beginPath();
+      context.arc(startX, startY, radius, 0, Math.PI*2);
+      context.lineWidth = 1;
+      context.strokeStyle = "red";
+      context.stroke();
+    }
+
+    function handleMouseDown(e) {
+        //e.preventDefault();
+        //e.stopPropagation();
+        startX = parseInt(e.clientX - offsetX);
+        startY = parseInt(e.clientY - offsetY);
+        mousedown = true;
+    }
+
+    function handleMouseUp(e) {
+        if (!mousedown) {
+            return;
+        }
+        //e.preventDefault();
+        //e.stopPropagation();
+        mousedown = false;
+    }
+
+    function handleMouseOut(e) {
+        if (!mousedown) {
+            return;
+        }
+        //e.preventDefault();
+        //e.stopPropagation();
+        mousedown = false;
+    }
+
+    function handleMouseMove(e) {
+        if (!mousedown) {
+            return;
+        }
+        //e.preventDefault();
+        //e.stopPropagation();
+        var mouseX  = parseInt(e.clientX - offsetX);
+        var mouseY  = parseInt(e.clientY - offsetY);
+        var nDeltaX = parseInt(startX - e.clientX);
+        var nDeltaY = parseInt(startY - e.clientY);
+        drawOval(mouseX, mouseY);
+        drawCircle(nDeltaX, nDeltaY)
+    }
+
+    canvas.onmousedown = handleMouseDown;
+    canvas.onmousemove = handleMouseMove;
+    canvas.onmouseup = handleMouseUp;
+    canvas.onmouseout = handleMouseOut;
+
+  </script>
+</body>
+</html>
